@@ -14,7 +14,7 @@ hov, nor = '#AF4BD6', '#9130BD'
 pro_img = None
 
 
-def select_image(col=0, row=0, imgfr=None, colored=False):
+def select_image(col=0, row=0, imgfr=None):
     global gray_img, fr1, tabs, l_imgFr, imgref
     if imgfr is None:
         imgfr = l_imgFr
@@ -41,11 +41,7 @@ def select_image(col=0, row=0, imgfr=None, colored=False):
     if tabs.get() == 'Pseudo Coloring':
         for frm in tabs.tab('Pseudo Coloring').winfo_children():
             if frm.grid_info()['row'] == 1:
-                fr = frm
-        # if col==0:
-        #     create_graph(fr, 1, 0, img=gray_img, txt='Target Image Histogram')
-        # elif col==1:
-        #     create_graph(fr, 3, 0, img=imgref, txt='Reference Image Histogram')  
+                fr = frm 
 
 def pseudo_color():
     pass
