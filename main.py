@@ -1,16 +1,15 @@
 import customtkinter as ctk
-import cv2, numpy as np, colorsys
+import cv2, numpy as np
 from PIL import Image
 from tkinter import filedialog, messagebox
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
+
 
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
 
 # Global variables
 k1_val, process_btn,upload_btn = 5, None, None
-upperFr,arrow,app,gray_img,r_imgFr,l_imgFr,tabs= None,None,None,None,None,None,None
+upperFr,arrow,app,gray_img,r_imgFr,l_imgFr,tabs = None,None,None,None,None,None,None
 image_size = (339, 190)
 hov, nor = '#AF4BD6', '#9130BD'
 pro_img = None
@@ -122,12 +121,12 @@ def upper_frame(img=False):
         l_imgFr = ctk.CTkFrame(upperFr, corner_radius=20, fg_color="#2B2B2B")
         l_imgFr.grid(row=0, column=1, padx=15, pady=15, sticky='snew')
         
-        arrow = ctk.CTkImage(Image.open('../right arrow.png'), size=(60, 60))
+        arrow = ctk.CTkImage(Image.open('right arrow.png'), size=(60, 60))
         ctk.CTkLabel(upperFr, image = arrow, text='').grid(column=3, row=0, padx=10, pady=10)
         r_imgFr = ctk.CTkFrame(upperFr, corner_radius=20, fg_color="#2B2B2B")
         r_imgFr.grid(row=0, column=5, padx=15, pady=15, sticky='snew')
     
-        img1 = ctk.CTkImage(Image.open('../no image.png'), size=image_size)
+        img1 = ctk.CTkImage(Image.open('no image.png'), size=image_size)
 
         if not img:
             ctk.CTkLabel(l_imgFr, image=img1, text='').grid(column=0, row=0, padx=10,pady=10)
