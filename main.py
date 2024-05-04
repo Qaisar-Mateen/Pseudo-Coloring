@@ -40,8 +40,8 @@ def select_image(col=0, row=0, imgfr=None):
 
     ctk.CTkLabel(imgfr, image=img1, text='').grid(column=col, row=row, padx=10,pady=10)
 
-    create_graph(tabs.tab('Denoise Filter'), 1, 0, img=gray_img)
-    create_graph(tabs.tab('Denoise Filter'), 3, 0, txt='Denoised Image Histogram')
+    create_graph(tabs.tab('Pseuco Coloring'), 1, 0, img=gray_img)
+    create_graph(tabs.tab('Pseuco Coloring'), 3, 0, txt='Denoised Image Histogram')
 
 
 
@@ -75,6 +75,10 @@ def Denose_filter():
 
     
     new_img = new_img[size//2:-size//2, size//2:-size//2]
+    
+    # cliping values back in range of 0 to 255
+    new_img = np.clip(new_img, 0, 255).astype('uint8')
+
     cv2.imwrite('denois.png', new_img)
 
     pro_img = ctk.CTkImage(Image.open('denois.png'), size=image_size)
@@ -83,7 +87,7 @@ def Denose_filter():
         if info['row'] == 0:
             child.destroy()
     ctk.CTkLabel(r_imgFr, image=pro_img, text='').grid(column=0, row=0, padx=10,pady=10)
-    create_graph(tabs.tab('Denoise Filter'), 3, 0, img=new_img, txt='Denoised Image Histogram')
+    create_graph(tabs.tab('Pseuco Coloring'), 3, 0, img=new_img, txt='Denoised Image Histogram')
 
 
 
@@ -137,7 +141,7 @@ def show_val(value, r, txt):
 def populize_tab(tab, title):
     global gray_img, arrow
 
-    if title == 'Denoise Filter':
+    if title == 'Pseuco Coloring':
         global winSize2, variance
 
         tab.columnconfigure((0,6), weight=1)
@@ -164,12 +168,12 @@ def upper_frame(img=False):
         l_imgFr = ctk.CTkFrame(upperFr, corner_radius=20, fg_color="#2B2B2B")
         l_imgFr.grid(row=0, column=1, padx=15, pady=15, sticky='snew')
         
-        arrow = ctk.CTkImage(Image.open('right arrow.png'), size=(60, 60))
+        arrow = ctk.CTkImage(Image.open('../right arrow.png'), size=(60, 60))
         ctk.CTkLabel(upperFr, image = arrow, text='').grid(column=3, row=0, padx=10, pady=10)
         r_imgFr = ctk.CTkFrame(upperFr, corner_radius=20, fg_color="#2B2B2B")
         r_imgFr.grid(row=0, column=5, padx=15, pady=15, sticky='snew')
     
-        img1 = ctk.CTkImage(Image.open('no image.png'), size=image_size)
+        img1 = ctk.CTkImage(Image.open('../no image.png'), size=image_size)
 
         if not img:
             ctk.CTkLabel(l_imgFr, image=img1, text='').grid(column=0, row=0, padx=10,pady=10)
@@ -191,7 +195,7 @@ def upper_frame(img=False):
 def basicLayout():
     global app, r_imgFr, l_imgFr, image_size, arrow, tabs, upperFr
     if app:
-        app.title('DIP Assignment (21L-1770)')
+        app.title('Pseudo Coloring')
         width= app.winfo_screenwidth()               
         height= app.winfo_screenheight()
         app.geometry('%dx%d'% (width//1.3, (height//1.3)+40))
@@ -213,10 +217,10 @@ def basicLayout():
         tabs = ctk.CTkTabview(lowerFr, segmented_button_selected_color=nor, segmented_button_unselected_hover_color=hov, segmented_button_selected_hover_color=hov)
         tabs.grid(sticky='news')
 
-        MMSE       = tabs.add('Filter')
+        MMSE       = tabs.add('Pseuco Coloring')
 
         # MMSE Filter tab content
-        populize_tab(MMSE, 'Denoise Filter')
+        populize_tab(MMSE, 'Pseuco Coloring')
 
 
 if __name__ == '__main__':
