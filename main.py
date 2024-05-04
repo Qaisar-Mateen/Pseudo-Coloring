@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import cv2, os, threading, numpy as np, time
+import cv2, numpy as np
 from PIL import Image
 from tkinter import filedialog, messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -9,8 +9,8 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
 
 # Global variables
-k1_val,k2_val,process_btn,upload_btn,winSize,imgref,wtf = 0.5,0.5,None,None,None,None,False
-upperFr,mapping,fr1,k,r,arrow,app,gray_img,r_imgFr,l_imgFr,tabs,Min,Max = None,None,None,None,None,None,None,None,None,None,None,None,None
+process_btn,upload_btn = None,None
+upperFr,arrow,app,gray_img,r_imgFr,l_imgFr,tabs= None,None,None,None,None,None,None
 image_size = (339, 190)
 hov, nor = '#AF4BD6', '#9130BD'
 pro_img = None
@@ -75,7 +75,7 @@ def Denose_filter():
 
     
     new_img = new_img[size//2:-size//2, size//2:-size//2]
-    
+
     # cliping values back in range of 0 to 255
     new_img = np.clip(new_img, 0, 255).astype('uint8')
 
