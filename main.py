@@ -9,12 +9,11 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
 
 # Global variables
-process_btn,upload_btn = None,None
+k1_val, process_btn,upload_btn = 5, None, None
 upperFr,arrow,app,gray_img,r_imgFr,l_imgFr,tabs= None,None,None,None,None,None,None
 image_size = (339, 190)
 hov, nor = '#AF4BD6', '#9130BD'
 pro_img = None
-
 
 def select_image(col=0, row=0, imgfr=None):
     global gray_img, fr1, tabs, l_imgFr, imgref
@@ -37,21 +36,27 @@ def select_image(col=0, row=0, imgfr=None):
 
 # ---------------Image Processing functions---------------
 def PseudoColor():
-    global gray_img, winSize2, variance, pro_img
-    # try:
-    #     size = int(winSize2.get())
-    #     noise_variance = float(variance.get())
-    #     if size < 1 or noise_variance < 0:
-    #         raise ValueError
-    # except ValueError:
-    #     messagebox.showerror('Invalid Input', 'Please enter valid input')
-    #     return
+    global gray_img, k1_val, pro_img, check_var
+    
+    new_img = np.zeros((gray_img.shape[0], gray_img.shape[1], 3), dtype=np.uint8)
 
-    new_img = cv2.cvtColor(gray_img, cv2.COLOR_GRAY2RGB)
+    colors = []
+    for i in range(k1_val):
+        weights = np.random.rand(3)
 
+        if check_var.get():
+            weights /= weights.sum() # Normalize the weights to get smoothed trasitions in colors
+
+        colors.append(weights)
+
+    for i in range(k1_val):
+        for j in range(3):
+            weighted_pixels = (gray_img * colors[i][j]).astype('uint8')
+            new_img[:, :, j] += weighted_pixels
     
     # cliping values back in range of 0 to 255
-    #new_img = np.clip(new_img, 0, 255).astype('uint8')
+    new_img = np.clip(new_img, 0, 255).astype('uint8')
+
 
     cv2.imwrite('Colored.png', new_img)
 
@@ -61,7 +66,6 @@ def PseudoColor():
         if info['row'] == 0:
             child.destroy()
     ctk.CTkLabel(r_imgFr, image=pro_img, text='').grid(column=0, row=0, padx=10,pady=10)
-    create_graph(tabs.tab('Pseuco Coloring'), 3, 0, img=new_img, txt='Denoised Image Histogram')
 
 
 def process_image():
@@ -72,35 +76,43 @@ def process_image():
     
     PseudoColor()
 
-
 # ---------------Layout functions---------------
 def show_val(value, r, txt):
-    global k1_val, k2_val
+    global k1_val
 
     if r == 1:
-        k1_val =  round(float(value), 2)
-        txt.configure(text=f'{k1_val:.2f}')
-    else:
-        k2_val =  round(float(value), 2)
-        txt.configure(text=f'{k2_val:.2f}')
+        k1_val =  int(value)
+        txt.configure(text=f'{k1_val}')
+
+    
 
 def populize_tab(tab, title):
     global gray_img, arrow
 
     if title == 'Pseuco Coloring':
-        global winSize2, variance
-
+        global check_var
+        check_var = ctk.BooleanVar(value=False)
         tab.columnconfigure((0,6), weight=1)
 
         fr = ctk.CTkFrame(tab)
         fr.grid(column=1, row=1, pady=5, padx=5, sticky='news', columnspan=3)
-        fr.columnconfigure((0,3), weight=1)
+        fr.columnconfigure((0,7), weight=1)
 
-        Sensitivity = ctk.CTkEntry(fr, width=105, placeholder_text='Window Size')
-        winSize2.grid(column=1, row=1, pady=10, padx=5)
+        txt1= ctk.CTkLabel(fr, text='5')
+        txt1.grid(column=3, row=1, pady=10, padx=5)
+        ctk.CTkLabel(fr, text='Sensitivity: ').grid(column=1, row=1, pady=10, padx=5, sticky='e')
+        k1 = ctk.CTkSlider(fr, width=300, from_=1, to=10, number_of_steps=10, button_color=nor, progress_color=hov, button_hover_color=hov, command=lambda e: show_val(e,1,txt1))
+        k1.grid(column=2, row=1, padx=5, pady=10)
 
-        variance = ctk.CTkEntry(fr, width=105, placeholder_text='Noise Variance')
-        variance.grid(column=2, row=1, pady=10, padx=5)
+        fr2 = ctk.CTkFrame(tab)
+        fr2.grid(column=1, row=2, pady=5, padx=5, sticky='news', columnspan=3)
+        fr2.columnconfigure((0,7), weight=1)
+
+        
+        checkbox = ctk.CTkCheckBox(fr2, text="Normalize", command=None, fg_color=nor, hover_color=hov,
+                                variable=check_var, onvalue=True, offvalue=False)
+        checkbox.grid(column=1, row=1, padx=5, pady=5)
+        
 
 
 def upper_frame(img=False):
@@ -159,7 +171,7 @@ def basicLayout():
         tabs = ctk.CTkTabview(lowerFr, segmented_button_selected_color=nor, segmented_button_unselected_hover_color=hov, segmented_button_selected_hover_color=hov)
         tabs.grid(sticky='news')
 
-        MMSE       = tabs.add('Pseuco Coloring')
+        MMSE = tabs.add('Pseuco Coloring')
 
         # MMSE Filter tab content
         populize_tab(MMSE, 'Pseuco Coloring')
