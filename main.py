@@ -172,7 +172,7 @@ def basicLayout():
 
         MMSE = tabs.add('Pseuco Coloring')
 
-        # MMSE Filter tab content
+        
         populize_tab(MMSE, 'Pseuco Coloring')
 
 
