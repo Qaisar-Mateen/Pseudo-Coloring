@@ -1,10 +1,10 @@
 import customtkinter as ctk
-import cv2, numpy as np
+import cv2, numpy as np, colorsys
 from PIL import Image
 from tkinter import filedialog, messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+from math import sqrt, cos, acos, degrees, radians, pi
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
 
@@ -22,15 +22,10 @@ def select_image(col=0, row=0, imgfr=None):
         imgfr = l_imgFr
     file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg *.png *.jpeg")])
     colored_img = cv2.imread(file_path)
-    if col == 1:
-        imgref = cv2.cvtColor(colored_img, cv2.COLOR_BGR2GRAY)
-        cv2.imwrite('ref.png', imgref)
-        img1 = ctk.CTkImage(Image.open('ref.png'), size=image_size)
     
-    else:
-        gray_img = cv2.cvtColor(colored_img, cv2.COLOR_BGR2GRAY)
-        cv2.imwrite('gray.png', gray_img)
-        img1 = ctk.CTkImage(Image.open('gray.png'), size=image_size)
+    gray_img = colored_img#cv2.cvtColor(colored_img, cv2.COLOR_BGR2GRAY)
+    cv2.imwrite('gray.png', gray_img)
+    img1 = ctk.CTkImage(Image.open('gray.png'), size=image_size)
 
     # remove previous image
     for child in imgfr.winfo_children():
@@ -44,44 +39,65 @@ def select_image(col=0, row=0, imgfr=None):
     create_graph(tabs.tab('Pseuco Coloring'), 3, 0, txt='Denoised Image Histogram')
 
 
+def rgb_to_hsi(rgb_img):
+    rgb_img = rgb_img / 255.0
+
+    hsi_img = np.zeros(rgb_img.shape, dtype=np.float32)
+
+    for i in range(rgb_img.shape[0]):
+        for j in range(rgb_img.shape[1]):
+            r, g, b = rgb_img[i, j, :]
+            intensity = (r + g + b) / 3.0
+
+            min_val = min(min(r, g), b)
+            if min_val == intensity:
+                saturation = 0
+            else:
+                saturation = 1 - (3 * min_val) / (r + g + b)
+
+            sqrt_val = ((r - g)**2 + (r - b)*(g - b)) ** 0.5
+
+            if sqrt_val == 0:
+                hue = 0
+            else:
+                hue = np.arccos((0.5 * (r - g + r - b)) / sqrt_val)
+
+            if b > g:
+                hue = ((360 * 3.14159265) / 180.0) - hue
+
+            hsi_img[i, j, 0] = (hue * 180) / 3.14159265
+            hsi_img[i, j, 1] = saturation*100
+            hsi_img[i, j, 2] = intensity
+
+    return hsi_img
 
 # ---------------Image Processing functions---------------
-def Denose_filter():
+def PseudoColor():
     global gray_img, winSize2, variance, pro_img
-    try:
-        size = int(winSize2.get())
-        noise_variance = float(variance.get())
-        if size < 1 or noise_variance < 0:
-            raise ValueError
-    except ValueError:
-        messagebox.showerror('Invalid Input', 'Please enter valid input')
-        return
+    # try:
+    #     size = int(winSize2.get())
+    #     noise_variance = float(variance.get())
+    #     if size < 1 or noise_variance < 0:
+    #         raise ValueError
+    # except ValueError:
+    #     messagebox.showerror('Invalid Input', 'Please enter valid input')
+    #     return
 
-    # padding the image
-    padded_img = np.pad(gray_img, ((size//2, size//2), (size//2, size//2)), mode='edge')
+    new_img = gray_img #cv2.cvtColor(gray_img, cv2.COLOR_GRAY2RGB)
 
-    new_img = np.copy(padded_img)
+    hsi_img = rgb_to_hsi(new_img)
 
-    h, w = gray_img.shape
+    print(hsi_img.shape, new_img.shape)
 
-    for y in range(size, h - size):
-        for x in range(size, w - size):
-            window = padded_img[y - size:y + size + 1, x - size:x + size + 1]
-            mean = np.mean(window.flatten())
-            var = np.var(window.flatten())
-
-            print(noise_variance/var)
-            new_img[y, x] = (new_img[y, x] - (noise_variance/var)*(new_img[y, x] - mean)).astype('uint8')
+    #new_img = hsi_to_rgb(hsi_img)
 
     
-    new_img = new_img[size//2:-size//2, size//2:-size//2]
-
     # cliping values back in range of 0 to 255
-    new_img = np.clip(new_img, 0, 255).astype('uint8')
+    #new_img = np.clip(new_img, 0, 255).astype('uint8')
 
-    cv2.imwrite('denois.png', new_img)
+    cv2.imwrite('Colored.png', hsi_img)
 
-    pro_img = ctk.CTkImage(Image.open('denois.png'), size=image_size)
+    pro_img = ctk.CTkImage(Image.open('Colored.png'), size=image_size)
     for child in r_imgFr.winfo_children():
         info = child.grid_info()
         if info['row'] == 0:
@@ -97,7 +113,7 @@ def process_image():
         messagebox.showerror('ERROR', 'Please select an image first!')
         return
     
-    Denose_filter()
+    PseudoColor()
 
 
 
